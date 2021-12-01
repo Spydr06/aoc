@@ -1,0 +1,20 @@
+import "libc/stdio.csp";
+import "libc/string.csp";
+import "file.csp";
+import "vec.csp";
+import "string.csp";
+
+fn main(): i32 {
+    let inputstr = std::file::getstr(file!("input.txt"));
+    let lines = std::string::split(inputstr, "\n");
+    let increased = 0;
+
+    for let i = 1; i < std::vec::size(lines); i++; {
+        if atoi(lines[i]) > atoi(lines[i-1]) 
+            increased++;
+    }
+
+    printf("increased: %d\n", increased);
+
+    <- 0;
+}
