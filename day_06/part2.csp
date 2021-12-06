@@ -1,0 +1,35 @@
+import "libc/stdio.csp";
+import "libc/string.csp";
+import "file.csp";
+import "vec.csp";
+import "string.csp";
+
+const DAYS = 256;
+
+fn main(): i32 {
+    let inputstr = std::file::getstr(file!("input.txt"));
+    let fish: u64[9];
+    memset(fish, 0, (len fish) * (sizeof u64));
+    
+    for let i = 0; i < strlen(inputstr); i += 2; {
+        fish[inputstr[i] - '0']++;
+    }
+
+    for let i = 0; i < DAYS; i++; {
+        let fish0 = fish[0];
+        for let j = 0; j < (len fish) - 1; j++; {
+            fish[j] = fish[j + 1];
+        }
+        fish[8] = fish0;
+        fish[6] += fish[8];
+    }
+
+    let sum: u64 = 0;
+    for let i = 0; i < len fish; i++; {
+        sum += fish[i];
+    }
+
+    printf("%d days: %lu fish\n", DAYS, sum);
+
+    <- 0;
+}
