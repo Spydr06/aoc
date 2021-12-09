@@ -1,0 +1,47 @@
+import "libc/stdio.csp";
+import "libc/string.csp";
+import "file.csp";
+import "vec.csp";
+import "string.csp";
+import "libc/math.csp";
+
+fn main(): i32 {
+    let inputstr = std::file::getstr(file!("input.txt"));
+    let lines = std::string::split(inputstr, "\n");
+    
+    let plot: i32[1000][1000];
+    memset(plot, 0, 1_000_000 * sizeof i32);
+
+    for let i = 0; i < std::vec::size(lines); i++; {
+        let coords = std::string::split(lines[i], "-");
+        let start = std::string::split(coords[0], ",");
+        let end = std::string::split(coords[1] + 2, ",");
+        let x1 = strtol(start[0], nil, 10);
+        let y1 = strtol(start[1], nil, 10);
+        let x2 = strtol(end[0], nil, 10);
+        let y2 = strtol(end[1], nil, 10);
+        
+        # . * .
+        # . * .
+        # . * .
+        if x1 == x2
+            for let i: i32 = fmin(y1, y2); i <= fmax(y1, y2); i++;
+                (plot[x1][i])++;
+        
+        # . . .
+        # * * *
+        # . . .
+        else if y1 == y2
+            for let i: i32 = fmin(x1, x2); i <= fmax(x1, x2); i++;
+                (plot[i][y1])++;
+    }
+
+    let sum = 0;
+    for let i = 0; i < 1_000_000; i++; {
+        if plot[i % 1000][i / 1000] > 1 sum++;
+    }
+
+    printf("%d\n", sum);
+
+    <- 0;
+}
