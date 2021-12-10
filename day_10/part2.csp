@@ -1,0 +1,91 @@
+import "libc/stdio.csp";
+import "libc/string.csp";
+import "libc/math.csp";
+import "file.csp";
+import "vec.csp";
+import "string.csp";
+
+fn main(): i32 {
+    let inputstr = std::file::getstr(file!("input.txt"));
+    let lines = std::string::split(inputstr, "\n");
+
+    let scores = vec![i64];
+    
+    for let i = 0; i < std::vec::size(lines); i++; {
+        let pos = 0;
+        let first_err = '\0';
+        let err = chunk(lines[i], &pos, &first_err);
+
+        if err {
+            let score = autocomplete(lines[i]);
+            vec_add!(scores, score);
+        }
+    }
+
+    ::qsort(scores, std::vec::size(scores), sizeof typeof *scores, 
+        |a: const &void, b: const &void| i32 => {
+            let ia = *(a: &typeof *scores);
+            let ib = *(b: &typeof *scores);
+            if ia == ib ret 0;
+            else if ia < ib ret 1;
+            else ret -1;
+        }
+    );
+
+    printf("middle score: %ld\n", scores[std::vec::size(scores) / 2]);
+    <- 0;
+}
+
+fn chunk(line: std::String, pos: &i32, first_err: &char): bool {
+    let start = line[(*pos)++];
+    let closing = '\0';
+
+    match start {
+        '(' => closing = ')';
+        '[' => closing = ']';
+        '{' => closing = '}';
+        '<' => closing = '>';
+    }
+
+    while (line[*pos] == '(' || line[*pos] == '[' || line[*pos] == '{' || line[*pos] == '<') && (*pos) < std::string::size(line) {
+        let err = chunk(line, pos, first_err);
+        if err ret err;
+    }
+
+    if line[*pos] != closing {
+        if !*first_err {
+            (*first_err) = line[*pos];
+        }
+        if line[*pos] == (*first_err) && line[*pos] == '\0' ret true;
+        <- false;
+    }
+    (*pos)++;
+    <- false;
+}
+
+fn autocomplete(line: std::String): i64 {
+    let stack = vec![char];
+    
+    for let i = 0; i < std::string::size(line); i++; {
+        let c = line[i];
+        if c == '(' || c == '[' || c == '{' || c == '<' {
+            vec_add!(stack, c);
+        }
+        else {
+            let pos = std::vec::size(stack) - 1;
+            vec_remove!(stack, pos);
+        }
+    }
+
+    let score: i64 = 0;
+    for let i: i64 = std::vec::size(stack) - 1; i >= 0; i--; {
+        score *= 5;
+        match stack[i] {
+            '(' => score += 1;
+            '[' => score += 2;
+            '{' => score += 3;
+            '<' => score += 4;
+        }
+    }
+    <- score;
+}
