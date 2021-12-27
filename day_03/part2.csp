@@ -44,7 +44,7 @@ fn get_bit_criteria(vec: &std::String, bit: i32): [char, char] {
         }
     }
     if ones >= zeros 
-        <- {'1', '0'};
+        <- ['1', '0'];
     else
-        <- {'0', '1'};
+        <- ['0', '1'];
 }
