@@ -1,0 +1,28 @@
+import "std.csp";
+
+macro FILENAME { "input.txt" }
+
+fn main(): i32 {
+    using std;
+
+    with f = file::open(FILENAME!, file::READ) {
+        let buffer = file::read_all(f);
+        
+        let floor = 0;
+        for let i = 0; i < len buffer; i++; {
+            match buffer[i] {
+                '(' => floor++;
+                ')' => floor--;
+                _ => noop;
+            }
+        }
+
+        io::printf("floor: %i\n", floor);
+
+        string::free(buffer);
+    }
+    else
+        io::eprintf("%E `" FILENAME! "`\n");
+    
+    <- 0;
+}
