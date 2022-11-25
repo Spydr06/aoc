@@ -1,0 +1,23 @@
+import "libc/stdio.csp";
+import "libc/string.csp";
+import "file.csp";
+import "vec.csp";
+import "string.csp";
+
+fn main(): i32 {
+    let inputstr = std::file::getstr(file!("input.txt"));
+    let lines = std::string::split(inputstr, "\n");
+    let num = 0;
+
+    for let i = 0; i < std::vec::size(lines); i++; {
+        let output = std::string::split(lines[i], "|")[1];
+        let digits = std::string::split(output, " ");
+
+        for let j = 0; j < std::vec::size(digits); j++; {
+            let l = std::string::size(digits[j]);
+            if (l == 2) || (l == 3) || (l == 4) || (l == 7) num++;
+        }
+    }
+    printf("%d\n", num);
+    <- 0;
+}

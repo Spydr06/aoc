@@ -1,0 +1,33 @@
+import "libc/stdio.csp";
+import "libc/string.csp";
+import "libc/math.csp";
+import "file.csp";
+import "vec.csp";
+import "string.csp";
+
+fn main(): i32 {
+    let inputstr = std::file::getstr(file!("input.txt"));
+    let fuelstrs = std::string::split(inputstr, ",");
+    let fuels = vec![i32];
+
+    for let i = 0; i < std::vec::size(fuelstrs); i++; {
+        let n = strtol(fuelstrs[i], nil, 10);
+        vec_add!(fuels, n);
+    }
+
+    let total_fuel = -1;
+
+    for let i = std::vec::min_i(fuels); i < std::vec::max_i(fuels); i++; {
+        let current_fuel = 0;
+        for let j = 0; j < std::vec::size(fuels); j++; {
+            let n = abs(fuels[j] - i);
+            current_fuel += (n * (n + 1)) / 2;
+        }
+        
+        if (current_fuel < total_fuel) || (total_fuel == -1) 
+            total_fuel = current_fuel;
+    }
+
+    printf("fuel: %d\n", total_fuel);
+    <- 0;
+}

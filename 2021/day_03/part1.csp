@@ -1,0 +1,38 @@
+import "libc/stdio.csp";
+import "libc/string.csp";
+import "file.csp";
+import "vec.csp";
+import "string.csp";
+
+fn main(): i32 {
+    let inputstr = std::file::getstr(file!("input.txt"));
+    let lines = std::string::split(inputstr, "\n");
+
+    let gamma = 0;
+    let epsilon = 0;
+
+    for let i = 0; i < strlen(lines[0]); i++; {
+        let ones = 0;
+        let zeros = 0;
+
+        for let j = 0; j < std::vec::size(lines); j++; {
+            match lines[j][i] {
+                '0' => zeros++;
+                '1' => ones++;
+            }
+        }
+
+        let bit = strlen(lines[0]) - i - 1;
+        if ones > zeros {
+            gamma |= (1 << bit);
+            epsilon |= (0 << bit);
+        }
+        else {
+            gamma |= (0 << bit);
+            epsilon |= (1 << bit);
+        }
+    }
+
+    printf("power consumption: %d\n", gamma * epsilon);
+    <- 0;
+}

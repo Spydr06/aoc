@@ -1,0 +1,50 @@
+import "libc/stdio.csp";
+import "libc/string.csp";
+import "file.csp";
+import "vec.csp";
+import "string.csp";
+
+fn main(): i32 {
+    let inputstr = std::file::getstr(file!("input.txt"));
+    let oxygen_list = std::string::split(inputstr, "\n");
+    let co2_list = vec_copy!(oxygen_list);
+
+    let oxygen = 0;
+    let co2 = 0;
+
+    for let i = 0; i < strlen(oxygen_list[0]); i++; {        
+        let common_bit: char = get_bit_criteria(oxygen_list, i)._0;
+        let uncommon_bit: char = get_bit_criteria(co2_list, i)._1;
+
+        oxygen = apply_criteria(oxygen_list, i, common_bit);
+        co2 = apply_criteria(co2_list, i, uncommon_bit);
+    }
+
+    printf("oxygen: %d\nCO2: %d\nlife support rating: %d\n", oxygen, co2, oxygen * co2);
+    <- 0;
+}
+
+fn apply_criteria(list: &std::String, bit_idx: i32, bit: char): i32 {
+    for let j = 0; j < std::vec::size(list); j++; {
+        if list[j][bit_idx] != bit {
+            vec_remove!(list, j);
+            j--;
+        }
+    }
+    <- strtol(list[0], nil, 2);
+}
+
+fn get_bit_criteria(vec: &std::String, bit: i32): [char, char] {
+    let zeros = 0;
+    let ones = 0;
+    for let i = 0; i < std::vec::size(vec); i++; {
+        match vec[i][bit] {
+            '0' => zeros++;
+            '1' => ones++;
+        }
+    }
+    if ones >= zeros 
+        <- ['1', '0'];
+    else
+        <- ['0', '1'];
+}

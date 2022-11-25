@@ -1,0 +1,55 @@
+import "libc/stdio.csp";
+import "libc/string.csp";
+import "file.csp";
+import "vec.csp";
+import "string.csp";
+
+let error_score = 0;
+
+fn main(): i32 {
+    let inputstr = std::file::getstr(file!("input.txt"));
+    let lines = std::string::split(inputstr, "\n");
+    
+    for let i = 0; i < std::vec::size(lines); i++; {
+        let pos = 0;
+        let first_err = '\0';
+        chunk(lines[i], &pos, &first_err);
+    }
+
+    printf("Error score: %d\n", error_score);
+    <- 0;
+}
+
+fn chunk(line: std::String, pos: &i32, first_err: &char): bool {
+    let start = line[(*pos)++];
+    let closing = '\0';
+
+    match start {
+        '(' => closing = ')';
+        '[' => closing = ']';
+        '{' => closing = '}';
+        '<' => closing = '>';
+    }
+
+    while (line[*pos] == '(' || line[*pos] == '[' || line[*pos] == '{' || line[*pos] == '<') && (*pos) < std::string::size(line) {
+        if !chunk(line, pos, first_err) ret false;
+    }
+
+    if line[*pos] != closing {
+        if !*first_err {
+            (*first_err) = line[*pos];
+        }
+        
+        if line[*pos] == *first_err {
+            match line[*pos] {
+                ')' => error_score += 3;
+                ']' => error_score += 57;
+                '}' => error_score += 1197;
+                '>' => error_score += 25137;
+            }
+        }
+        <- false;
+    }
+    (*pos)++;
+    <- true;
+}

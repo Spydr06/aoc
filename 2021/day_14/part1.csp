@@ -1,0 +1,74 @@
+import "libc/stdio.csp";
+import "libc/string.csp";
+import "file.csp";
+import "vec.csp";
+import "string.csp";
+
+type Pair: struct {
+    c: char,
+    n: i64
+};
+
+fn main(): i32 {
+    let inputstr = std::file::getstr(file!("input.txt"));
+    let lines = std::string::split(inputstr, "\n");
+    
+    let template = vec![char];
+
+    for let i = 0; i < std::string::size(lines[0]); i++; {
+        vec_add!(template, lines[0][i]);
+    }
+
+    for let i: u64 = 0; i < 10; i++; {
+        for let j: u64 = 0; j < std::vec::size(template) - 1; j++; {
+            for let k: u64 = 2; k < std::vec::size(lines); k++; {
+                let instr = std::string::split(std::string::copy(lines[k]), " ");
+                let str: char[3];
+                str[0] = template[j];
+                str[1] = template[j + 1];
+                str[2] = '\0';
+
+                printf("%s vs. %s\n", str, instr[0]);
+
+                if strcmp(str, instr[0]) == 0 {
+                    j++;
+                    vec_insert!(template, j, instr[2][0]);
+                    break;
+                }
+            }
+        }
+    }
+
+
+    let occurances = vec![Pair];
+
+    for let i = 0; i < std::vec::size(template); i++; {
+        let idx = -1;
+        for let j = 0; j < std::vec::size(occurances); j++; {
+            if occurances[j].c == template[i] {
+                idx = j;
+                break;
+            }
+        }
+
+        if idx == -1 {
+            vec_add!(occurances, {template[i], 1}: Pair);
+        }
+        else
+            occurances[idx].n++;
+    }
+
+    ::qsort(occurances, std::vec::size(occurances), sizeof typeof *occurances, 
+        |a: const &void, b: const &void| i32 => {
+            let ia: i64 = (a: &Pair).n;
+            let ib: i64 = (b: &Pair).n;
+            if ia == ib ret 0;
+            else if ia < ib ret 1;
+            else ret -1;
+        }
+    );
+
+    printf("%ld\n", occurances[0].n - occurances[std::vec::size(occurances) - 1].n);
+
+    <- 0;
+}

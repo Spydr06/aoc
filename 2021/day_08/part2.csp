@@ -1,0 +1,39 @@
+import "libc/stdio.csp";
+import "libc/string.csp";
+import "file.csp";
+import "vec.csp";
+import "string.csp";
+
+type Mapping: i32;
+
+fn main(): i32 {
+    let inputstr = std::file::getstr(file!("input.txt"));
+    let lines = std::string::split(inputstr, "\n");
+    let num = 0;
+
+    for let i = 0; i < std::vec::size(lines); i++; {
+        let output = std::string::split(lines[i], "|");
+        let digit = std::string::split(output[1], " ");
+
+        let mapping = resolve(output[0]);
+        let output_val = 0;
+
+        for let j = 1; j < 4; j++; {
+            output_val += decode(digit[j], mapping) * 10 * (j - 1);
+        }
+        printf("output_val: %d\n", output_val);
+
+        num += output_val;
+    }
+    printf("%d\n", num);
+    <- 0;
+}
+
+fn resolve(str: std::String): Mapping {
+    let map: Mapping = 0;
+    <- map;
+}   
+
+fn decode(str: std::String, mapping: Mapping): i32 {
+    <- 0;
+}
