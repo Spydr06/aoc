@@ -1,4 +1,7 @@
 # AOC2021
+
+> **Warning** THESE SOLUTIONS WERE WRITTEN WITH AN OLD VERSION OF CSPYDR AND ARE NO LONGER COMPATIBLE WITH CURRENT VERSIONS OF THE LANGUAGE!
+
 My Advent of Code solutions for 2021
 
 These solutions are written in my own programming language [CSpydr](https://github.com/spydr06/cspydr.git), which I'm developing since almost a year.
