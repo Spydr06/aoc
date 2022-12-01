@@ -1,0 +1,40 @@
+import "std.csp";
+import "libc/stdlib.csp";
+
+fn main(): i32 {
+    using std;
+
+    with f = file!("input.txt") {
+        let input = file::read_all(f);
+        let list = string::split(input, "\n");
+        let calories = vec![i32];
+        let elf = 0;
+        let top = [0, 0, 0];
+
+        for let i = 0; i < vec::size(list); i++; {
+            if(!len list[i]) {
+                if calories[elf] > top[0] {
+                    top[2] = top[1];
+                    top[1] = top[0];
+                    top[0] = calories[elf];
+                }
+                else if calories[elf] > top[1] {
+                    top[2] = top[1];
+                    top[1] = calories[elf];
+                }
+                else if calories[elf] > top[2]
+                    top[2] = calories[elf];
+
+                elf++;
+                vec_add!(calories, 0);
+                continue;
+            }
+            
+            calories[elf] += c_str::to_i32(list[i]);
+        }
+
+        io::printf("top 3 calories: %i + %i + %i = %i total.\n", top[0], top[1], top[2], top[0] + top[1] + top[2]);  
+    }
+
+    <- 0;
+}

@@ -1,0 +1,33 @@
+import "std.csp";
+
+fn main(): i32 {
+    using std;
+
+    with f = file!("input.txt") {
+        let input = file::read_all(f);
+        let list = string::split(input, "\n");
+        let calories = vec![i32];
+        let elf = 0;
+        let most_calories = 0;
+
+        for let i = 0; i < vec::size(list); i++; {
+            if(!len list[i]) {
+                if(calories[elf] > most_calories)
+                    most_calories = calories[elf];
+                elf++;
+                vec_add!(calories, 0);
+                continue;
+            }
+            
+            calories[elf] += c_str::to_i32(list[i]);
+        }
+
+        memory::free(input);
+        vec_free!(calories);
+        vec_free!(list);
+
+        io::printf("most calories: %i.\n", most_calories);
+    }
+
+    <- 0;
+}
