@@ -1,0 +1,32 @@
+import "std.csp";
+
+const RESULT: i32[3][3] = [
+# rock paper scissors
+    [2, 0, 1], # lose
+    [0, 1, 2], # draw
+    [1, 2, 0]  # win
+];
+
+fn main(): i32 {
+    using std;
+
+    with f = file!("input.txt") {
+        let input = file::read_all(f);
+        let lines = string::split(input, "\n");
+        let score = 0;
+
+        for let i = 0; i < vec_size!(lines); i++; {
+            let a = lines[i][0] - 'A';
+            let b = lines[i][2] - 'X';
+
+            score += (b * 3 + 1 + RESULT[b][a]);
+        }
+
+        io::printf("score: %i\n", score);
+
+        vec_free!(lines);
+        free!(input);
+    }
+
+    <- 0;
+}
