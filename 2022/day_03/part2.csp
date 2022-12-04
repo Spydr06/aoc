@@ -1,0 +1,42 @@
+import "std.csp";
+
+fn main(): i32 {
+    using std;
+
+    with f = file!("input.txt") {
+        let input = file::read_all(f);
+        let lines = string::split(input, "\n");
+        let sum = 0;
+
+        for let i = 0; i < vec_size!(lines); i += 3; {
+            let shared: char;
+
+            for let j = 0; j < len lines[i]; j++; {
+                for let k = 0; k < len lines[i + 1]; k++; {
+                    for let l = 0; l < len lines[i + 2]; l++; {
+                        if lines[i][j] == lines[i + 1][k] && lines[i][j] == lines[i + 2][l] {
+                            shared = lines[i][j];
+                            break;
+                        }
+                    }
+                    if(shared)
+                        break;
+                }
+                if(shared)
+                    break;
+            }
+
+            if shared >= 'a' && shared <= 'z'
+                sum += (shared - 'a' + 1);
+            else
+                sum += (shared - 'A' + 27);
+        }
+
+        io::printf("sum: %i\n", sum);
+
+        vec_free!(lines);
+        free!(input);
+    }
+
+    <- 0;
+}
