@@ -1,0 +1,26 @@
+import "std.csp";
+import "libc/stdio.csp";
+
+fn main(): i32 {
+    using std;
+
+    with f = file!("input.txt") {
+        let input = file::read_all(f);
+        let lines = string::split(input, "\n");
+        let pairs = 0;
+
+        for let i = 0; i < vec_size!(lines); i++; {
+            let sections: u8[4];
+            
+            libc::sscanf(lines[i], "%u-%u,%u-%u\n", &sections[0], &sections[1], &sections[2], &sections[3]);
+            pairs += ((sections[0] <= sections[2] && sections[1] >= sections[3] || sections[2] <= sections[0] && sections[3] >= sections[1]): u32);
+        }
+
+        io::printf("pairs: %i\n", pairs);
+
+        vec_free!(lines);
+        free!(input);
+    }
+
+    <- 0;
+}
