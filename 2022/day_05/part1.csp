@@ -1,0 +1,64 @@
+import "std.csp";
+import "libc/stdio.csp";
+
+fn move(stacks: (&char)[], count: i32, from: i32, to: i32) {
+    using std;
+    for let i = 0; i < count; i++;
+        vec_push!(stacks[to], vec_pop!(stacks[from]));
+}
+
+fn setup_stacks(stacks: (&char)[], chars: &const char) {
+    let stack = 0;
+    for let i = 0; i < len chars; i++; {
+        if chars[i] == '\n'
+            stack++;
+        else
+            vec_push!(stacks[stack], chars[i]);
+    }
+}
+
+fn main(): i32 {
+    using std;
+
+    #let chars = "ZN\nMCD\nP";
+    let chars =
+        "HTZD\n"
+        "QRWTGCS\n"
+        "PBFQNRCH\n"
+        "LCNFHZ\n"
+        "GLFQS\n"
+        "VPWZBRCS\n"
+        "ZFJ\n"
+        "DLVZRHQ\n"
+        "BHGNFZLD";
+
+    let stacks = [vec![char], vec![char], vec![char], vec![char], vec![char], vec![char], vec![char], vec![char], vec![char]];
+    setup_stacks(stacks, chars);
+
+    with f = file!("input.txt") {
+        let input = file::read_all(f);
+        let lines = string::split(input, "\n");
+
+        for let i = 0; i < vec_size!(lines); i++; {
+            if(lines[i][0] != 'm')
+                continue;
+            
+            let count = 0;
+            let from = 0;
+            let to = 0;
+            libc::sscanf(lines[i], "move %u from %u to %u\n", &count, &from, &to);
+
+            move(stacks, count, from - 1, to - 1);
+        }
+
+        vec_free!(lines);
+        free!(input);
+    }
+
+    for let i = 0; i < len stacks; i++; {
+        io::putc(vec_last!(stacks[i]));
+        vec_free!(stacks[i]);
+    }
+    io::putc('\n');
+    <- 0;
+}
