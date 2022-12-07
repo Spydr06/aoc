@@ -1,0 +1,31 @@
+import "std.csp";
+
+macro PART1_MARKER_SIZE { 4 }
+macro PART2_MARKER_SIZE { 14 }
+macro MARKER_SIZE { PART1_MARKER_SIZE! } # replace this for part 2 solutions
+
+fn main(): i32 {
+    using std;
+
+    let data = "<your puzzle input>";
+    for let i = 0; i < (len data) - MARKER_SIZE! - 1; i++; {
+        let sig_start = true;
+        for let j = i; j < i + MARKER_SIZE!; j++; {
+            for let k = i; k < i + MARKER_SIZE!; k++; {
+                if k != j && data[j] == data[k] {
+                    sig_start = false;
+                    break;
+                }
+            }
+
+            if !sig_start break;
+        }
+
+        if sig_start {
+            io::printf("signal start: %i\n", i + MARKER_SIZE!);
+            break;
+        }
+    }
+
+    <- 0;
+}
