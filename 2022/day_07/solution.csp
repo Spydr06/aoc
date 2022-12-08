@@ -1,0 +1,120 @@
+import "std.csp";
+import "libc/stdlib.csp";
+
+type Entry: struct {
+    name: &const char,
+    outer: &Entry,
+    entries: &&Entry,
+    size: u32,
+    is_dir: bool
+};
+
+namespace entry {
+    fn new(name: &const char, outer: &Entry, size: u32, is_dir: bool): &Entry
+    {
+        let entry: &Entry = std::memory::alloc(sizeof Entry);
+        entry.name = name;
+        entry.outer = outer;
+        entry.entries = if is_dir => vec![&Entry] else nil: &&Entry;
+        entry.size = size;
+        entry.is_dir = is_dir;
+
+        <- entry;
+    }
+
+    fn add(entry: &Entry, name: &const char, is_dir: bool, size: u32) {
+        vec_push!(entry.entries, new(name, entry, size, is_dir));
+    }
+
+    fn cd(current: &Entry, to: &const char): &Entry {
+        if !current
+            <- new(to, nil, 0, true);
+
+        if to[0] == '.' && to[1] == '.'
+            <- current.outer;
+        else if to[0] == '/' {
+            while current.outer current = current.outer;
+            <- current;
+        }
+
+        for let i = 0; i < vec_size!(current.entries); i++; {
+            if std::string::equal(current.entries[i].name, to)
+                <- current.entries[i];
+        }
+
+        assert!(false, "not found");
+        <- nil;
+    }
+
+    fn iter(entry: &Entry, body: fn(&Entry)) {
+        if !entry.is_dir ret;
+
+        for let i = 0; i < vec_size!(entry.entries); i++; {
+            let inner = entry.entries[i];
+            if inner.is_dir
+                iter(inner, body);
+        }
+
+        body(entry);
+    }
+}
+
+fn main(): i32 {
+    using std;
+
+    with f = file!("input.txt") {
+        let input = file::read_all(f);
+        let lines = string::split(input, "\n");
+        
+        let dir: &Entry;
+
+        for let i = 0; i < vec_size!(lines); i++; {
+            let line = lines[i];
+            match *line {
+                '\n' => noop;
+                '$' => {
+                    if line[2] == 'c'
+                        dir = entry::cd(dir, &(line[5]));
+                }
+                'd' => {                   
+                    entry::add(dir, &(line[4]), true, 0);
+                }
+                _ => {
+                    let size = libc::strtol(line, nil, 10);
+                    do line++ while *line != 32;
+                    entry::add(dir, &line[1], false, size);
+                }
+            }
+        }
+
+        dir = entry::cd(dir, "/");
+        let sum: u32 = 0;
+
+        entry::iter(dir, |entry: &Entry| => {
+            for let i = 0; i < vec_size!(entry.entries); i++;
+                entry.size += entry.entries[i].size;
+            
+            if entry.size < 100_000
+                sum += entry.size;
+        });
+
+        io::printf("total size: %i\n", sum);
+
+        let total: u32 = 70_000_000;
+        let needed: u32 = 30_000_000;
+        let free_space = total - dir.size;
+        let smallest = dir.size;
+
+        entry::iter(dir, |entry: &Entry| => {
+            if entry.size >= needed - free_space && entry.size < smallest
+                smallest = entry.size;
+        });
+
+        io::printf("smallest size for deletion: %i\n", smallest);
+
+        vec_free!(lines);
+        free!(input);
+    }
+
+    <- 0;
+}
