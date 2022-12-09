@@ -1,0 +1,59 @@
+import "std.csp";
+
+fn main(): i32 {
+    using std;
+
+    with f = file!("input.txt") {
+        let input = file::read_all(f);
+        let lines = string::split(input, "\n");
+
+        assert!(vec_size!(lines) - 1 == len lines[0], "input is not square");
+
+        let size = len lines[0];
+        let visible_trees = 0;
+
+        for let i = 0; i < size * size; i++; {
+            let x = i / size;
+            let y = i % size;
+            let height = lines[y][x];
+            let visible = 4;
+
+            for let j = 0; j < x; j++; {
+                if lines[y][j] >= height {
+                    visible--;
+                    break;
+                }
+            }
+
+            for let j = x + 1; j < size; j++; {
+                if lines[y][j] >= height {
+                    visible--;
+                    break;
+                }
+            }
+
+            for let j = 0; j < y; j++; {
+                if lines[j][x] >= height {
+                    visible--;
+                    break;
+                }
+            }
+
+            for let j = y + 1; j < size; j++; {
+                if lines[j][x] >= height {
+                    visible--;
+                    break;
+                }
+            }
+
+            if visible visible_trees++;
+        }
+
+        io::printf("visible trees: %i\n", visible_trees);
+
+        vec_free!(lines);
+        free!(input);
+    }
+
+    <- 0;
+}

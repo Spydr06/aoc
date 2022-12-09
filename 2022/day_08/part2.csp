@@ -1,0 +1,59 @@
+import "std.csp";
+
+fn main(): i32 {
+    using std;
+
+    with f = file!("input.txt") {
+        let input = file::read_all(f);
+        let lines = string::split(input, "\n");
+
+        assert!(vec_size!(lines) - 1 == len lines[0], "input is not square");
+
+        let size = len lines[0];
+        let scenic_score = 0;
+
+        for let i = 0; i < size * size; i++; {
+            let x = i / size;
+            let y = i % size;
+            let height = lines[y][x];
+
+            #            left  right up    down
+            let views = [0,    0,    0,    0];
+
+            for let j = x - 1; j >= 0; j--; {
+                views[0]++;
+                if lines[y][j] >= height
+                    break;
+            }
+
+            for let j = x + 1; j < size; j++; {
+                views[1]++;
+                if lines[y][j] >= height
+                    break;
+            }
+
+            for let j = y - 1; j >= 0; j--; {
+                views[2]++;
+                if lines[j][x] >= height
+                    break;
+            }
+
+            for let j = y + 1; j < size; j++; {
+                views[3]++;
+                if lines[j][x] >= height
+                    break;
+            }
+
+            views[0] * views[1] * views[2] * views[3] |> (
+                scenic_score = if $ > scenic_score => $ else scenic_score
+            );
+        }
+
+        io::printf("highest scenic score: %i\n", scenic_score);
+
+        vec_free!(lines);
+        free!(input);
+    }
+
+    <- 0;
+}
