@@ -1,0 +1,78 @@
+import "std.csp";
+
+type Coordinate: struct {
+    x: i32,
+    y: i32
+};
+
+fn is_touching(tail_pos: Coordinate, head_pos: Coordinate): bool {
+    <- max!(tail_pos.x, head_pos.x) - min!(tail_pos.x, head_pos.x) <= 1 && max!(tail_pos.y, head_pos.y) - min!(tail_pos.y, head_pos.y) <= 1;
+}
+
+fn move_tail(tail_pos: &Coordinate, head_pos: Coordinate) {
+    if is_touching(*tail_pos, head_pos)
+        ret;
+
+    if tail_pos.y > head_pos.y
+        tail_pos.y--;
+    else if tail_pos.y < head_pos.y
+        tail_pos.y++;
+
+    if tail_pos.x > head_pos.x
+        tail_pos.x--;
+    else if tail_pos.x < head_pos.x
+        tail_pos.x++;
+}
+
+fn visited(coords: &Coordinate, coord: Coordinate): bool {
+    for let i = 0; i < vec_size!(coords); i++; {
+        if coords[i].x == coord.x && coords[i].y == coord.y
+            <- true; # coordinate alredy present
+    }
+    <- false;
+}
+
+fn main(): i32 {
+    using std;
+
+    with f = file!("input.txt") {
+        let input = file::read_all(f);
+        let lines = string::split(input, "\n");
+
+        #               x  y
+        let head_pos = Coordinate::{0, 0};
+        let tail_pos = Coordinate::{0, 0};
+
+        let positions = vec![Coordinate];
+        vec_push!(positions, tail_pos);
+
+        for let i = 0; i < vec_size!(lines); i++; {
+            do continue unless len lines[i];
+
+            let steps = c_str::to_i32(&lines[i][2]);
+            for 0..steps {
+                match lines[i][0] {
+                    'R' => head_pos.x++;
+                    'L' => head_pos.x--;
+                    'U' => head_pos.y++;
+                    'D' => head_pos.y--;
+                    _ => noop;
+                }
+
+                move_tail(&tail_pos, head_pos);
+
+                do
+                    vec_push!(positions, tail_pos)
+                unless visited(positions, tail_pos);
+            }
+        }
+
+        io::printf("tail visited %i unique places\n", vec_size!(positions));
+
+        vec_free!(positions);
+        vec_free!(lines);
+        free!(input);
+    }
+
+    <- 0;
+}
