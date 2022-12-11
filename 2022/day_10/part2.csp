@@ -1,0 +1,43 @@
+import "std.csp";
+
+fn cycle(cycles: &i32, x_reg: i32, crt: bool[])
+    (*cycles)++ |> ($ - $ / 40 * 40) |> (crt[*cycles - 1] = $ - x_reg >= -1 && $ - x_reg <= 1);
+
+fn main(): i32 {
+    using std;
+
+    with f = file!("input.txt") {
+        let input = file::read_all(f);
+        let lines = string::split(input, "\n");
+
+        let x_reg = 1;
+        let cycles = 0;
+        let crt: bool[40 * 6];
+
+        for let i = 0; i < vec_size!(lines); i++; {
+            do continue unless len lines[i];
+            
+            match lines[i][0] {
+                'n' => cycle(&cycles, x_reg, crt);
+                'a' => {
+                    cycle(&cycles, x_reg, crt);
+                    cycle(&cycles, x_reg, crt);
+                    x_reg += c_str::to_i32(&lines[i][5]);
+                }
+                _ => noop;
+            }
+        }
+
+        for let i = 0; i < len crt; i++; {
+            if i && i % 40 == 0
+                io::putc('\n');
+            io::putc(".#"[crt[i]: i8]);
+        }
+        io::putc('\n');
+
+        vec_free!(lines);
+        free!(input);
+    }
+
+    <- 0;
+}
