@@ -1,0 +1,107 @@
+import "std.csp";
+import "libc/stdio.csp";
+
+macro ROUNDS { 20 }
+
+type Monkey: struct {
+    items: &i32,
+    operation: &char,
+    test: i32,
+    on_true: i32,
+    on_false: i32,
+    inspections: i32
+};
+
+namespace monkey {
+    fn operation(op: &char, old: i32): i32 {
+        using std::c_str;
+
+        let operands: char'c[10]'c[2];
+        let operator = '\0';
+
+        libc::sscanf(op, "%s %c %s", &operands[0], &operator, &operands[1]);
+       
+        let a = operands[0] |> if $[0] == 'o' => old else to_i32($);
+        let b = operands[1] |> if $[0] == 'o' => old else to_i32($);
+
+        match operator {
+            '+' => ret a + b;
+            '*' => ret a * b;
+            _ => assert!(false, "unknown operator");
+        }
+
+        <- 0;
+    }
+
+    fn inspect(monkey: &Monkey, index: i32) {
+        monkey.items[index] = operation(monkey.operation, monkey.items[index]) / 3;
+        monkey.inspections++;
+    }
+
+    fn round(monkeys: Monkey[], num_monkeys: i32) {
+        for let i = 0; i < num_monkeys; i++; {
+            for let j = vec_size!(monkeys[i].items) - 1; j >= 0; j--; {
+                inspect(&monkeys[i], j);
+                vec_pop!(monkeys[i].items) |> 
+                vec_push!(monkeys[if $ % monkeys[i].test == 0 => monkeys[i].on_true else monkeys[i].on_false].items, $);
+            }
+        }
+    }
+}
+
+fn main(): i32 {
+    using std;
+
+    with f = file!("input.txt") {
+        let input = file::read_all(f);
+        let lines = string::split(input, "\n");
+        
+        let num_monkeys = 0;
+        let monkeys: Monkey[10];
+
+        for let i = 0; i < vec_size!(lines); i += 7; {
+            let index = 0;
+            assert!(libc::sscanf(lines[i], "Monkey %d:", &index) == 1, lines[i]);
+
+            if index + 1 > num_monkeys
+                num_monkeys = index + 1;
+            assert!(num_monkeys <= len monkeys);
+
+            let items = string::split(&lines[i + 1][len "  Starting items:"], ",");
+            monkeys[index].items = vec![i32];
+            for let j = 0; j < vec_size!(items); j++;
+                vec_push!(monkeys[index].items, c_str::to_i32(items[j]));
+            vec_free!(items);
+
+            monkeys[index].operation = &lines[i + 2][len "  Operation: new = "];
+            assert!(libc::sscanf(lines[i + 3], "  Test: divisible by %d", &monkeys[index].test) == 1);
+            assert!(libc::sscanf(lines[i + 4], "    If true: throw to monkey %d", &monkeys[index].on_true) == 1);
+            assert!(libc::sscanf(lines[i + 5], "    If false: throw to monkey %d", &monkeys[index].on_false) == 1);
+        }
+
+        for let i = 0; i < ROUNDS!; i++; {
+            monkey::round(monkeys, num_monkeys);
+        }
+
+        let business = [0, 0];
+        for let i = 0; i < num_monkeys; i++; {
+            let inspections = monkeys[i].inspections;
+            if inspections > business[0] {
+                business[1] = business[0];
+                business[0] = inspections;
+                continue;
+            }
+            
+            else if inspections > business[1] {
+                business[1] = inspections;
+            }
+            vec_free!(monkeys[i].items);
+        }
+
+        io::printf("monkey business level: %i * %i => %i\n", ...business, business[0] * business[1]);
+
+        vec_free!(lines);
+        free!(input);
+    }
+    <- 0;
+}
