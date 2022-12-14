@@ -1,0 +1,151 @@
+import "std.csp";
+
+type Packet: struct {
+    is_int: bool,
+    is_divider: bool,
+    data: union {
+        list: &Packet,
+        int: i64
+    }
+};
+
+type Result: enum {
+    WRONG, RIGHT, EQ
+};
+
+namespace packet {
+    fn parse(input: &&const char): Packet {
+        let packet = Packet::{**input != '[', false};
+
+        assert!(**input == '[' || (**input >= '0' && **input <= '9'), *input);
+
+        if packet.is_int {
+            packet.data.int = std::c_str::to_i32(*input);
+            *input += (if packet.data.int >= 10 => 2 else 1);
+        }
+        else {
+            (*input)++;
+            packet.data.list = vec![Packet];
+            while **input != ']' {
+                vec_add!(packet.data.list, parse(input));
+                #assert!(**input == ',', *input);
+                if **input == ',' {
+                    (*input)++;
+                }
+            }
+        }
+
+        <- packet;
+    }
+
+    fn compare(left: Packet, right: Packet): Result {
+        if left.is_int && right.is_int {
+            if left.data.int == right.data.int
+                <- Result::EQ;
+            <- if left.data.int < right.data.int => Result::RIGHT else Result::WRONG;
+        }
+
+        if !left.is_int && !right.is_int {
+            for let i = 0; i < max!(vec_size!(left.data.list), vec_size!(right.data.list)); i++; {
+                if i >= vec_size!(right.data.list)
+                    <- Result::WRONG;
+                if i >= vec_size!(left.data.list)
+                    <- Result::RIGHT;
+                
+                let result = compare(left.data.list[i], right.data.list[i]);
+                if result != Result::EQ
+                    <- result;
+            }
+
+            <- Result::EQ;
+        }
+
+        if left.is_int {
+            let new_left = Packet::{false, false};
+            new_left.data.list = vec![Packet];
+            vec_push!(new_left.data.list, left);
+            <- compare(new_left, right);
+        }
+
+        let new_right = Packet::{false, false};
+        new_right.data.list = vec![Packet];
+        vec_push!(new_right.data.list, right);
+        <- compare(left, new_right);
+    }
+
+    fn decoder_key(val: i32): Packet {
+        let packet = Packet::{false};
+        packet.is_divider = true;
+        packet.data.list = vec![Packet];
+
+        let inner = Packet::{false, false};
+        inner.data.list = vec![Packet];
+        
+        let num = Packet::{true, false};
+        num.data.int = val;
+
+        vec_push!(inner.data.list, num);
+        vec_push!(packet.data.list, inner);
+
+        <- packet;
+    }
+
+    fn sort(packets: &Packet) {
+        for let i = 1; i < vec_size!(packets); i++; {
+            let tmp = packets[i];
+
+            let j = i - 1;
+            while(j >= 0 && compare(packets[j], tmp) != Result::RIGHT) {
+                packets[j + 1] = packets[j];
+                j--;
+            }
+
+            packets[j + 1] = tmp;
+        }
+    }
+}
+
+fn main(): i32 {
+    using std;
+
+    with f = file!("input.txt") {
+        let input = file::read_all(f);
+        let lines = string::split(input, "\n");
+    
+        let correct = 0;
+
+        let packets = vec![Packet, 302];
+
+        for let i = 0; i < vec_size!(lines); i += 3; {
+            vec_push!(packets, packet::parse(&lines[i]));
+            vec_push!(packets, packet::parse(&lines[i + 1]));
+            if packet::compare(vec_last!(packets, 1), vec_last!(packets)) != Result::WRONG
+                correct += (i / 3 + 1);
+        }
+
+        io::printf("correct packets: %i\n", correct);
+        
+        vec_push!(packets, packet::decoder_key(2));
+        vec_push!(packets, packet::decoder_key(6));
+
+        packet::sort(packets);
+
+        let dividers = {0, 0};
+
+        for let i = 0; i < vec_size!(packets); i++; {
+            do continue unless packets[i].is_divider;
+
+            if packets[i].data.list[0].data.list[0].data.int == 2
+                dividers._0 = i + 1;
+            else
+                dividers._1 = i + 1;
+        }
+
+        io::printf("dividers at: %i, %i decoder key: %i\n", ...dividers, dividers._0 * dividers._1);
+
+        vec_free!(lines);
+        free!(input);
+    }
+
+    <- 0;
+}
