@@ -1,0 +1,94 @@
+import "std.csp";
+import "libc/stdio.csp";
+
+macro MAX_WIDHT { 1000 }
+macro MAX_HEIGHT { 200 }
+
+fn main(): i32 {
+    using std;
+
+    with f = file!("input.txt") {
+        let input = file::read_all(f);
+        let lines = string::split(input, "\n");
+
+        let plot: char'c[MAX_WIDHT!]'c[MAX_HEIGHT!];
+            
+        memory::set(plot, ' ', MAX_HEIGHT! * MAX_WIDHT!);
+        plot[0][MAX_WIDHT! / 2] = '@';
+
+        let d1 = {0, 0};
+        let d2 = {0, 0};
+        let max_y = -1;
+
+        for let i = 0; i < vec_size!(lines); i++; {
+            do continue unless len lines[i];
+
+            let line = lines[i];
+
+            assert!(libc::sscanf(lines[i], "%d,%d", &d1._0, &d1._1) == 2, line);
+
+            while *line != ' ' line++;
+
+            while line < lines[i] + len lines[i] {
+                assert!(libc::sscanf(line, " -> %d,%d", &d2._0, &d2._1) == 2, line);
+                max_y = (max!(d1._1, d2._1) |> if $ > max_y => $ else max_y);
+
+                if d1._0 <= d2._0 for let j = d1._0; j <= d2._0; j++; plot[d1._1][j] = '#';
+                if d1._0 >= d2._0 for let j = d1._0; j >= d2._0; j--; plot[d1._1][j] = '#';
+                if d1._1 <= d2._1 for let j = d1._1; j <= d2._1; j++; plot[j][d1._0] = '#';
+                if d1._1 >= d2._1 for let j = d1._1; j >= d2._1; j--; plot[j][d1._0] = '#';
+
+                d1 = d2;
+
+                line++;
+                while (*line) != ' ' line++;
+                line++;
+                while (*line) != ' ' line++;
+            }
+        }
+
+        for let i = 0; i < MAX_WIDHT!; i++;
+            plot[max_y + 2][i] = '#';
+
+        let fallen = 0;
+        let s = {MAX_WIDHT! / 2, 0};
+        let units = 0;
+
+        timer::do_each_until(100, || bool => {
+            if plot[s._1 + 1][s._0] == ' '
+                s._1++;
+            else if plot[s._1 + 1][s._0 - 1] == ' ' {
+                s._0--;
+                s._1++;
+            }
+            else if plot[s._1 + 1][s._0 + 1] == ' ' {
+                s._0++;
+                s._1++;
+            }
+            else {
+                plot[s._1][s._0] = 'o';
+                fallen++;
+                s._0 = MAX_WIDHT! / 2;
+                s._1 = 0;
+            }
+
+            if s._1 == max_y && units == 0
+                units = fallen; 
+
+            libc::puts("\e[1;1H\e[2J");  
+
+            for let i = 0; i <= 64; i++; {
+                for let j = MAX_WIDHT! / 2 - 100; j < MAX_WIDHT! / 2 + 100; j++;
+                    libc::putc(plot[i][j], libc::stdout);
+                libc::putc('\n', libc::stdout);
+            }        
+
+            <- plot[0][MAX_WIDHT! / 2] != 'o';
+        });
+        
+        io::printf("Part 1: %i units fell\nPart 2: %i units fell\n", units, fallen);
+
+        free!(input);
+    }
+    <- 0;
+}
