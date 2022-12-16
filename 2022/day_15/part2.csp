@@ -1,0 +1,64 @@
+import "std.csp";
+import "libc/stdio.csp";
+
+macro SIZE { 4_000_000 }
+
+type Sensor: struct {
+    x: i32,
+    y: i32,
+    distance: i32
+};
+
+fn main(): i32 {
+    using std;
+
+    with f = file!("input.txt") {
+        let input = file::read_all(f);
+        let lines = string::split(input, "\n");
+
+        let sensors = vec![Sensor];
+
+        for let i = 0; i < vec_size!(lines); i++; {
+            do continue unless len lines[i];
+            let s: Sensor;
+            let beacon: {i32, i32};
+
+            assert!(libc::sscanf(lines[i], "Sensor at x=%d, y=%d: closest beacon is at x=%d, y=%d", &s.x, &s.y, &beacon._0, &beacon._1) == 4, "invalid input");
+            
+            s.distance = (abs!(s.x - beacon._0) + abs!(s.y - beacon._1));
+            vec_push!(sensors, s);
+        }
+
+        let num_sensors = vec_size!(sensors);
+        let current = {0, 0};
+        let covering: Sensor;
+
+        loop {
+            let covered = false;
+            for let i = 0; i < num_sensors; i++; {
+                let s = sensors[i];
+                covered = ((abs!(s.x - current._0) + abs!(s.y - current._1)) <= s.distance);
+                if covered {
+                    covering = s;
+                    break;
+                }
+            }
+
+            do break unless covered;
+
+            let skip = covering.distance - abs!(covering.y - current._1) + abs!(covering.x - current._0) + 1;
+            if current._0 + skip > (SIZE!) {
+                current._0 = 0;
+                current._1++;
+            }
+            else
+                current._0 += skip;
+        }
+
+        libc::printf("tuning frequency: %ld (%ld, %ld)\n", (current._0: i64) * (4_000_000: i64) + (current._1: i64), current._0, current._1);
+
+        vec_free!(lines);
+        free!(input);
+    }
+    <- 0;
+}

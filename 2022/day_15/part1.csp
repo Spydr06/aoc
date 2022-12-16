@@ -1,0 +1,67 @@
+import "std.csp";
+import "libc/stdio.csp";
+
+macro Y_POS { 2_000_000 }
+#macro Y_POS { 10 }
+
+type Sensor: struct {
+    x: i32,
+    y: i32,
+    distance: i32,
+    beacon: struct {
+        x: i32,
+        y: i32,
+    }
+};
+
+fn main(): i32 {
+    using std;
+
+    with f = file!("input.txt") {
+        let input = file::read_all(f);
+        let lines = string::split(input, "\n");
+
+        let sensors = vec![Sensor];
+
+        for let i = 0; i < vec_size!(lines); i++; {
+            do continue unless len lines[i];
+            let s: Sensor;
+            assert!(libc::sscanf(lines[i], "Sensor at x=%d, y=%d: closest beacon is at x=%d, y=%d", &s.x, &s.y, &s.beacon.x, &s.beacon.y) == 4, "invalid input");
+            s.distance = (abs!(s.x - s.beacon.x) + abs!(s.y - s.beacon.y));
+            vec_push!(sensors, s);
+        }
+
+        let not_possible: u64;
+        let num_sensors = vec_size!(sensors);
+
+        let left = sensors[0];
+        let right = sensors[0];
+
+        for let i = 0; i < num_sensors; i++; {
+            if sensors[i].x < left.x
+                left = sensors[i];
+            if sensors[i].x > right.x
+                right = sensors[i];
+        }
+
+        io::printf("sensors:\n\tleft: %i, %i\n\tright: %i, %i\n", left.x, left.y, right.x, right.y);
+
+        let j = 0;
+        for let i = left.x - left.distance; i < right.x + right.distance; i++; {
+            for j = 0; j < num_sensors; j++; {
+                if abs!(sensors[j].x - i) + abs!(sensors[j].y - Y_POS!) <= sensors[j].distance {
+                    if Y_POS! == sensors[j].beacon.y && sensors[j].beacon.x == i
+                        continue;
+                    not_possible++;
+                    break;
+                }
+            }
+        }
+
+        io::printf("%l locations on y=%i are not not possible\n", not_possible, Y_POS!);
+
+        vec_free!(lines);
+        free!(input);
+    }
+    <- 0;
+}
