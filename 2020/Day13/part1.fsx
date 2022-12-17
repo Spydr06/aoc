@@ -3,8 +3,8 @@ open System.Linq
 open System.IO
 
 let notes = File.ReadLines("input.txt").ToArray()
-let arrivalTime = Int32.Parse notes.[0];
-let mutable ids : int list = [];
+let arrivalTime = Int32.Parse notes.[0]
+let mutable ids : int list = []
 
 for idstr in notes.[1].Split "," do
     if idstr <> "x" then

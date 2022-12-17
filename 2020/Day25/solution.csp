@@ -1,0 +1,36 @@
+import "std.csp";
+
+import "libc/stdio.csp";
+
+macro transform(subject, value) {
+    ((value * subject) % (20201227: typeof (subject)))
+}
+
+fn find_loop_count(key: u64): u64 {
+    let value: u64 = 1;
+    let loops: u64;
+
+    while value != key {
+        value = transform!(7, value);
+        loops += 1;
+    }
+
+    <- loops;
+}
+
+fn main(): i32 {
+    using std;
+
+    let card_public_key: u64 = 14082811;
+    let door_public_key: u64 = 5249543;
+
+    let loop_count = find_loop_count(card_public_key);
+
+    let encryption_key: u64 = 1;
+    for 0 .. loop_count
+        encryption_key = transform!(door_public_key, encryption_key);
+    
+    std::io::printf("encryption key: %u\n", encryption_key);
+
+    <- 0;   
+}
