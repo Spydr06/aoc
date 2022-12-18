@@ -1,0 +1,197 @@
+import "std.csp";
+import "libc/stdio.csp";
+
+macro NUM_ROCKS { 1_000_000_000_000 }
+#macro NUM_ROCKS { 2022 }
+
+type Rock: bool[4][4];
+type Stack: &(char'c[7]);
+
+let rocks: Rock[5] = [
+    [
+        [true,  true,  true , true ], # ####
+        [false, false, false, false], #
+        [false, false, false, false], #
+        [false, false, false, false] #
+    ],
+    [
+        [false, true,  false, false], # .#.
+        [true , true,  true , false], # ###
+        [false, true,  false, false], # .#.
+        [false, false, false, false]
+    ],
+    [
+        [true , true , true , false], # ..#
+        [false, false, true , false], # ..#
+        [false, false, true , false], # ###
+        [false, false, false, false]
+    ],
+    [
+        [true,  false, false, false], # #
+        [true,  false, false, false], # #
+        [true,  false, false, false], # #
+        [true,  false, false, false]  # #
+    ],
+    [
+        [true,  true,  false, false], # ##
+        [true,  true,  false, false], # ##
+        [false, false, false, false],
+        [false, false, false, false]
+    ],
+];
+
+let rock_sizes: i32[10] = [
+    4, 1,
+    3, 3,
+    3, 3,
+    1, 4,
+    2, 2
+];
+
+fn grow(stack: &Stack, fill: char) {
+    let line: char'c[7];
+    std::memory::set(line, fill, 7 * sizeof char);
+    vec_push!(*stack, line);
+}
+
+fn stack_height(stack: Stack): u64 {
+    for let i = vec_size!(stack) - 1; i >= 0; i--;
+        for let j = 0; j < 7; j++;
+            if stack[i][j] == '#'
+                <- i + 1;
+    <- 0;
+}
+
+fn settle_rock(stack: Stack, rock_y: i64): bool {
+    for let i = rock_y; i >= max!(0, rock_y - 5); i--;
+        for let j = 0; j < 7; j++;
+            if stack[i][j] == '@' && stack[i - 1][j] == '#' {
+                for let k = rock_y; k >= max!(0, rock_y - 5); k--;
+                    for let l = 0; l < 7; l++;
+                        if stack[k][l] == '@'
+                            stack[k][l] = '#';
+                <- true;
+            }
+    <- false;
+}
+
+fn move_rock(stack: Stack, direction: char, rock_y: i64): bool {
+    match direction {
+        '>' => {
+            for let i = rock_y; i >= max!(0, rock_y - 4); i--; {
+                if stack[i][6] == '@' ret false;
+                for let j = 0; j < 6; j++; {
+                    if stack[i][j] == '@' && stack[i][j + 1] == '#'
+                        <- false;
+                } 
+            }
+
+            for let i = rock_y; i >= max!(0, rock_y - 4); i--; {
+                for let j = 5; j >= 0; j--; {
+                    if stack[i][j] == '@' {
+                        stack[i][j] = '.';
+                        stack[i][j + 1] = '@';
+                    }
+                }
+            }
+        }
+        '<' => {
+            for let i = rock_y; i >= max!(0, rock_y - 4); i--; {
+                if stack[i][0] == '@' ret false;
+                for let j = 1; j < 7; j++; {
+                    if stack[i][j] == '@' && stack[i][j - 1] == '#'
+                        <- false;
+                } 
+            }
+            
+            for let i = rock_y; i >= max!(0, rock_y - 4); i--; {
+                for let j = 1; j < 7; j++; {
+                    if stack[i][j] == '@' {
+                        stack[i][j] = '.';
+                        stack[i][j - 1] = '@';
+                    }
+                }
+            }
+        }
+        '_' => {
+            if settle_rock(stack, rock_y)
+                <- true;
+            for let i = max!(1, rock_y - 4); i < rock_y + 1; i++; {
+                for let j = 0; j < 7; j++; {
+                    if stack[i][j] == '@' {
+                        stack[i][j] = '.';
+                        stack[i - 1][j] = '@';
+                    }
+                }
+            }
+        }
+        _ => assert!(false, "input error");
+    }
+
+    <- false;
+}
+
+fn print_stack(stack: Stack) {
+    using std::io;
+    let buffer: char'c[10];
+    buffer[0] = buffer[8] = '|';
+    for let i = vec_size!(stack) - 1; i > 0; i--; {
+        std::memory::copy(&buffer[1], stack[i], 7);
+        puts(buffer);
+    }
+    puts("+-------+");
+}
+
+fn main(): i32 {
+    using std;
+
+    with f = file!("input.txt") {
+        let input = string::trim(file::read_all(f));
+        let stack = vec![char'c[7]];
+        
+        grow(&stack, '#');
+
+        let current: u64 = 0;
+        let new_rock = true;
+        let rock_y: u64 = 0;
+        let num_rocks: u64 = 0;
+        let total: u64 = 0;
+
+        for let i = 0; true; i++; {
+            if new_rock {
+                do {
+                    libc::printf("erasing %u items (%u%% fallen)\n", vec_size!(stack) - 100, (num_rocks / NUM_ROCKS!) * 100);
+                    total += (vec_size!(stack) - 100);
+                    vec_erase!(stack, 1, vec_size!(stack) - 100);
+                } unless num_rocks % 2000 || num_rocks == 0;
+
+                let height = stack_height(stack);
+                let add: i64 = height - vec_size!(stack) + 3 + rock_sizes[(current * 2) + 1];
+                while add-- > 0
+                    grow(&stack, '.');
+
+                for let j = 0; j < rock_sizes[current * 2]; j++;
+                    for let k = 0; k < 4; k++;
+                        if rocks[current][k][j]
+                            stack[height + 3 + k][j + 2] = '@'; 
+
+
+                new_rock = false;
+                rock_y = (height + 3 + rock_sizes[(current * 2) + 1]);
+                current = ((current + 1) % len rocks);
+                if num_rocks++ >= NUM_ROCKS!
+                    break;
+            }
+
+            move_rock(stack, input[i % len input], rock_y);
+            new_rock = move_rock(stack, '_', rock_y);
+            rock_y--;
+        }
+
+        print_stack(stack);
+        libc::printf("the stack is %ul units tall\n", total + stack_height(stack) - 1);
+
+        free!(input);
+    }
+    <- 0;
+}
