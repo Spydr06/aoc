@@ -1,0 +1,49 @@
+import "std.csp";
+import "libc/stdio.csp";
+
+fn main(): i32 {
+    using std;
+
+    with f = file!("input.txt") {
+        let input = file::read_all(f);
+        let lines = string::split(input, "\n");
+
+        let surface_area = 0;
+        let adjacent = [
+            {-1,  0,  0},
+            { 1,  0,  0},
+            { 0, -1,  0},
+            { 0,  1,  0},
+            { 0,  0, -1},
+            { 0,  0,  1}
+        ];
+
+        for let i = 0; i < vec_size!(lines); i++; {
+            do continue unless len lines[i];
+
+            let cube = {0, 0, 0};
+            assert!(libc::sscanf(lines[i], "%d,%d,%d", &cube._0, &cube._1, &cube._2) == 3, "parsing error");
+
+            for let j = 0; j < len adjacent; j++; {
+                let str = fmt::format("%i,%i,%i", cube._0 + adjacent[j]._0, cube._1 + adjacent[j]._1, cube._2 + adjacent[j]._2);
+                let found = false;
+                for let k = 0; k < vec_size!(lines); k++; {
+                    if string::equal(str, lines[k]) {
+                        found = true;
+                        break;
+                    }
+                }
+
+                do surface_area++ unless found;
+
+                free!(str);
+            }
+        }
+
+        io::printf("total surface area: %i\n", surface_area);
+
+        vec_free!(lines);
+        free!(input);
+    }
+    <- 0;
+}

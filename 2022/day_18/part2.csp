@@ -1,0 +1,135 @@
+import "std.csp";
+import "libc/stdio.csp";
+
+const adjacent: {i32, i32, i32}[6] = [
+    {-1,  0,  0},
+    { 1,  0,  0},
+    { 0, -1,  0},
+    { 0,  1,  0},
+    { 0,  0, -1},
+    { 0,  0,  1}
+];
+
+fn contains_cube(cubes: &{i32, i32, i32}, cube: {i32, i32, i32}): bool {
+    for let i = 0; i < vec_size!(cubes); i++;
+        if cubes[i]._0 == cube._0 && cubes[i]._1 == cube._1 && cubes[i]._2 == cube._2
+            <- true;
+    <- false;
+}
+
+fn surface_area(cubes: &{i32, i32, i32}): i32 {
+    let num_cubes = vec_size!(cubes);
+    let surface_area = 0;
+    for let i = 0; i < num_cubes; i++;
+        for let j = 0; j < len adjacent; j++;
+            do surface_area++ unless contains_cube(cubes, {
+                cubes[i]._0 + adjacent[j]._0,
+                cubes[i]._1 + adjacent[j]._1,
+                cubes[i]._2 + adjacent[j]._2}
+            );
+    <- surface_area;
+}
+
+fn main(): i32 {
+    using std;
+
+    with f = file!("input.txt") {
+        let input = file::read_all(f);
+        let lines = string::split(input, "\n");
+
+        let cubes = vec![{i32, i32, i32}];
+        let bounding_box = [
+            {0, 0, 0}, # min x y z
+            {0, 0, 0}  # max x y z
+        ];
+
+        for let i = 0; i < vec_size!(lines); i++; {
+            do continue unless len lines[i];
+
+            let cube = {0, 0, 0};
+            assert!(libc::sscanf(lines[i], "%d,%d,%d", &cube._0, &cube._1, &cube._2) == 3, "parsing error");
+            vec_push!(cubes, cube);
+
+            if cube._0 < bounding_box[0]._0
+                bounding_box[0]._0 = cube._0;
+            if cube._0 > bounding_box[1]._0
+                bounding_box[1]._0 = cube._0;
+            if cube._1 < bounding_box[0]._1
+                bounding_box[0]._1 = cube._1;
+            if cube._1 > bounding_box[1]._1
+                bounding_box[1]._1 = cube._1;
+            if cube._2 < bounding_box[0]._2
+                bounding_box[0]._2 = cube._2;
+            if cube._2 > bounding_box[1]._2
+                bounding_box[1]._2 = cube._2;
+        }
+
+        let initial_surface_area = surface_area(cubes);
+
+        bounding_box[0]._0 -= 2;
+        bounding_box[0]._1 -= 2;
+        bounding_box[0]._2 -= 2;
+        bounding_box[1]._0 += 2;
+        bounding_box[1]._1 += 2;
+        bounding_box[1]._2 += 2;
+
+        for let x = bounding_box[0]._0; x < bounding_box[1]._0; x++; {
+            for let y = bounding_box[0]._1; y < bounding_box[1]._1; y++; {
+                vec_push!(cubes, {x, y, bounding_box[0]._2});
+                vec_push!(cubes, {x, y, bounding_box[1]._2});
+            }  
+        }
+
+        for let x = bounding_box[0]._0; x < bounding_box[1]._0; x++; {
+            for let z = bounding_box[0]._2; z < bounding_box[1]._2; z++; {
+                vec_push!(cubes, {x, bounding_box[0]._1, z});
+                vec_push!(cubes, {x, bounding_box[1]._1, z});
+            }
+        }
+
+        for let y = bounding_box[0]._1; y < bounding_box[1]._1; y++; {
+            for let z = bounding_box[0]._2; z < bounding_box[1]._2; z++; {
+                vec_push!(cubes, {bounding_box[0]._0, y, z});
+                vec_push!(cubes, {bounding_box[1]._0, y, z});
+            }
+        }
+
+        let queue = vec![{i32, i32, i32}];
+        vec_push!(queue, {bounding_box[0]._0 + 1, bounding_box[0]._1 + 1, bounding_box[0]._2 + 1});
+
+        while vec_size!(queue) {
+            let cube = vec_pop!(queue);
+
+            if !contains_cube(cubes, cube) {
+                vec_push!(cubes, cube);
+                for let i = 0; i < len adjacent; i++; {
+                    let adjacent_cube = {
+                        cube._0 + adjacent[i]._0,
+                        cube._1 + adjacent[i]._1,
+                        cube._2 + adjacent[i]._2
+                    };
+
+                    if !contains_cube(cubes, adjacent_cube) {
+                        vec_push!(queue, adjacent_cube);
+                    }
+                }
+            }
+        }
+
+        let expected_new_external_surface_area =
+            2 * (bounding_box[1]._0 - bounding_box[0]._0 + 1) * (bounding_box[1]._1 - bounding_box[0]._1 + 1)
+            + 2 * (bounding_box[1]._0 - bounding_box[0]._0 + 1) * (bounding_box[1]._2 - bounding_box[0]._2 + 1)
+            + 2 * (bounding_box[1]._1 - bounding_box[0]._1 + 1) * (bounding_box[1]._2 - bounding_box[0]._2 + 1);
+        
+        let internal_surface_area = surface_area(cubes) - expected_new_external_surface_area;
+        let external_surface_area = initial_surface_area - internal_surface_area;
+
+        libc::printf("external surface area: %i\n", external_surface_area);
+
+        vec_free!(queue);
+        vec_free!(cubes);
+        vec_free!(lines);
+        free!(input);
+    }
+    <- 0;
+}
